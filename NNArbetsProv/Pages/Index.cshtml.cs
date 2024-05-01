@@ -7,10 +7,13 @@ namespace NNArbetsProv.Pages
     public class IndexModel : PageModel
     {
         private readonly ILogger<IndexModel> _logger;
+        private SellingPrice _sellingPrice;
 
         public IndexModel(ILogger<IndexModel> logger)
         {
             _logger = logger;
+            _sellingPrice = new SellingPrice();
+            _sellingPrice.giveLogger(_logger);
         }
 
         public string WelcomeMessage { get; private set; }
@@ -18,6 +21,9 @@ namespace NNArbetsProv.Pages
 
         public void OnGet()
         {
+
+            _sellingPrice.readInExcel("price_detail.csv");
+            
         }
 
         public IActionResult OnPost(string action)
@@ -31,10 +37,9 @@ namespace NNArbetsProv.Pages
 
         private void DoSomething()
         {
-            SellingPrice t;
-            t = new SellingPrice(); 
+        
             
-            _logger.LogInformation(t.test());
+            _logger.LogInformation(_sellingPrice.test());
         }
     }
 }

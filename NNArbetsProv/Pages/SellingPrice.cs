@@ -3,31 +3,34 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
 using System.IO;
+using System.Collections.Generic;
 
 namespace NNArbetsProv.Pages
 {
     public class SellingPrice
     {
         private ILogger<IndexModel> _logger;
+        private Dictionary<string, List<PriceDetails>> Product;
+
         public void giveLogger(ILogger<IndexModel> logger)
         {
             _logger = logger;
         }
-        public string test()
+        private PriceDetails fromRowToPriceDetail(string record)
         {
-            return "Nordic Nest Rock";
+            _logger.LogInformation(record);
+            return new PriceDetails();
         }
         public void readInExcel(string fileName)
         {
             CsvConfiguration csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
-                Delimiter = ",",
+                Delimiter = "\t",
                 HasHeaderRecord = true
             };
 
             StreamReader reader;
             CsvReader csv;
-
             try
             {
                 reader = new StreamReader(fileName);
@@ -39,19 +42,39 @@ namespace NNArbetsProv.Pages
                 return;
             }
 
-            csv.Read();
+            csv.Context.RegisterClassMap<PriceDetailsMap>();
 
-            var records = csv.GetRecord<dynamic>();
+            csv.Read();
+            csv.ReadHeader();
+
+            var header = csv.Parser.RawRecord;
+
+            var records = csv.GetRecords<PriceDetails>();
 
             foreach (var record in records)
             {
-                Console.WriteLine(record);
+                if(!Product.ContainsKey(record.CatalogEntryCode))
+                {
+                    Product.Add(record.CatalogEntryCode, new List<PriceDetails>());
+                }
+                Product[record.CatalogEntryCode].Add(record);
+            }
+            _logger.LogInformation("Done");
+        }
+        public List<List<PriceDetails>> getWithSKU(string SKU)
+        {
+            List<PriceDetails> priceDetailList = null;
+            if(!Product.TryGetValue(SKU, out priceDetailList))
+            {
+                //return empty if it didn't exist
+                return new List<List<PriceDetails>>();
             }
 
-        }
-        public void getWithSKU(string SKU)
-        {
+            List<List<PriceDetails>> Table = new List<List<PriceDetails>>();
 
+            //Do logic here
+
+            return Table;
         }
         public void getWithSKU(string SKU, string fileName)
         {

@@ -4,8 +4,7 @@
     ViewData["Title"] = "Home page";
 }
 <div class="text-center">
-    <h1>@Model.WelcomeMessage</h1>
-    
+    <p>If text is used it will overwrite the dropdown</p>
     <form method="post">
         <select name="SKUDropDown">
             @foreach (var option in Model.searchOptions.SKU)
@@ -32,7 +31,7 @@
         <input type="text" name="currencyText" placeholder="Currency" />
         
 
-        <button type="submit" name="action" value="doSomething">Do Something</button>
+        <button type="submit" name="action" value="GetProductPriceHistory">Get Product Price History</button>
     </form>
 
     @if (Model.tableOutput != null && Model.tableOutput.Any())
@@ -66,6 +65,4 @@
         <p>Click for table</p>
     }
 
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>

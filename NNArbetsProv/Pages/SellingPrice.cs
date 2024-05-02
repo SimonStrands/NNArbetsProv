@@ -1,19 +1,18 @@
-﻿using Microsoft.Extensions.Logging;
-using CsvHelper;
+﻿using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace NNArbetsProv.Pages
 {
     public class SellingPrice
     {
         private ILogger<IndexModel> _logger;
+
+        //Product(PriceDetails) are in a Dictionary where the Key is the SKU and the value is a list of the PriceDetails on that product
+        //Could do more in depth aka
+        //private Dictionary<string, Dictionary<List<PriceDetails>>> Product;
+        //But think it's to overkill and would take more memory than needed
         private Dictionary<string, List<PriceDetails>> Product;
-        //private Dictionary<string, Dictionary<string, List<PriceDetails>>> Product;
 
         private void OrderListByValidFrom(ref List<PriceDetails> thePriceDetailListCpy)
         {
@@ -27,7 +26,7 @@ namespace NNArbetsProv.Pages
         
         private bool lessThanTime(Nullable<DateTime> d1, Nullable<DateTime> d2)
         {
-            // It should be like this but we hack it
+            // It should NOT be like this but we hack it, btw no Idea if null is > *anytime at all (Not enough time to check)
             if(d1 == null)
                 return false;
             if (d2 == null)
@@ -36,14 +35,19 @@ namespace NNArbetsProv.Pages
             return d1 < d2;
         }
 
-        public void giveLogger(ILogger<IndexModel> logger)
+        public void Init(ILogger<IndexModel> logger)
         {
             Product = new Dictionary<string, List<PriceDetails>>();
             _logger = logger;
         }
-        public SearchOptions readInExcel(string fileName)
+
+        //Read the CSV file and with an output with the SearchOptions to easier search for everything
+        //incase of more market ID:s, Currency codes a.s.o are added
+        public SearchOptions readInCSV(string fileName)
         {
             SearchOptions theReturn = new SearchOptions();
+
+            //CSVhelper library init///////////
             CsvConfiguration csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 Delimiter = "\t",
@@ -72,37 +76,42 @@ namespace NNArbetsProv.Pages
 
             var records = csv.GetRecords<PriceDetails>();
 
+            //////////////////////////////////////
+
+            //Add each PriceDetail in the Dictionary
+            //Very ugly but don't know another way
             foreach (var record in records)
             {
                 if(!Product.ContainsKey(record.CatalogEntryCode))
                 {
                     Product.Add(record.CatalogEntryCode, new List<PriceDetails>());
-
                     theReturn.SKU.Add(record.CatalogEntryCode);
                 }
                 theReturn.marketId.Add(record.MarketId);
                 theReturn.currency.Add(record.CurrencyCode);
                 Product[record.CatalogEntryCode].Add(record);
             }
-            _logger.LogInformation("Done");
 
             return theReturn;
         }
+
+        //Get the Object with help of SKU, MarketId and CurrencyCode
         public List<PriceDetailOutput> getObject(string SKU, string MarketId, string CurrencyCode)
         {
             List<PriceDetails> priceDetailListref = null;
             
+            //Check if SKU/Product exist
             if(SKU == null || !Product.TryGetValue(SKU, out priceDetailListref))
             {
                 //return empty if it didn't exist
                 return new List<PriceDetailOutput>();
             }
+
             List<PriceDetails> priceDetailListCpy = new List<PriceDetails>(priceDetailListref);
-
             List<PriceDetailOutput> Table = new List<PriceDetailOutput>();
-            //Do logic here
 
-            //Remove unwanted in copies, but doesn't do it by reference
+            //Remove unwanted in copies, but doesn't do it by reference!
+            //Don't know if this takes to much power...
             for(int i = 0; i < priceDetailListCpy.Count; i++)
             {
                 if (priceDetailListCpy[i].MarketId != MarketId || priceDetailListCpy[i].CurrencyCode != CurrencyCode)
@@ -112,24 +121,27 @@ namespace NNArbetsProv.Pages
                 }
             }
 
-            //Make them in order by validFrom
+            if(priceDetailListCpy.Count < 1)
+            {
+                return new List<PriceDetailOutput>();
+            }
+
+            //Make them in order by "validFrom"
             OrderListByValidFrom(ref priceDetailListCpy);
 
+            //Make DateTime Nullable because validUntil can be NULL, and made them both so it looks nicer
             int currentIndexPrice = 0;
             int nextIndexPrice = 1;
             Nullable<DateTime> currentTime = priceDetailListCpy[currentIndexPrice].ValidFrom;
             Nullable<DateTime> validUntil = FromStringToDateTime(priceDetailListCpy[currentIndexPrice].ValidUntil);
 
             //Add the first one
-            Table.Add(new PriceDetailOutput(priceDetailListCpy[currentIndexPrice], priceDetailListCpy[currentIndexPrice].ValidFrom));
+            Table.Add(new PriceDetailOutput(priceDetailListCpy[currentIndexPrice], currentTime));
 
-            //TODO : FIX THIS!!! NOT RIGHT I THINK
             while (nextIndexPrice < priceDetailListCpy.Count)
             {
                 //check if nextIndexPrice.validfrom is > validuntil
-                //if true go back and add
-                //continue
-                //else : 
+                //if true jump back some and add it to the table
                 if(priceDetailListCpy[nextIndexPrice].ValidFrom > validUntil)
                 {
                     currentTime = validUntil;
@@ -144,8 +156,8 @@ namespace NNArbetsProv.Pages
                     Table.Add(new PriceDetailOutput(priceDetailListCpy[currentIndexPrice], currentTime));
                 }
 
-                //Check if nextIndexPrice.price is < currentIndexPrice
-                    //if true add it
+                //Check if nextIndexPrice.price is < currentIndexPrice.price
+                //if true add it
                 if(priceDetailListCpy[nextIndexPrice].UnitPrice < Table.Last().UnitPrice)
                 {
                     currentTime = priceDetailListCpy[nextIndexPrice].ValidFrom;
@@ -159,7 +171,9 @@ namespace NNArbetsProv.Pages
 
                 nextIndexPrice++;
             }
-            //do the last things
+
+            //Do the last small things like add End time to table.last
+            //and add the price detail with the longest ValidUntil
             Table.Last().End = FromStringToDateTime(priceDetailListCpy[currentIndexPrice].ValidUntil);
 
             Nullable<DateTime> biggest = Table.Last().End;

@@ -29,27 +29,22 @@ namespace NNArbetsProv.Pages
         {
             _logger = logger;
             _sellingPrice = new SellingPrice();
-            _sellingPrice.giveLogger(_logger);
-            searchOptions = _sellingPrice.readInExcel("price_detail.csv");
+            _sellingPrice.Init(_logger);
+            searchOptions = _sellingPrice.readInCSV("price_detail.csv");
         }
 
         public string WelcomeMessage { get; private set; }
         public string[] Items { get; private set; }
 
         public void OnGet()
-        {
-            _logger.LogInformation("hi");
-            Console.WriteLine("hi");
-            //_sellingPrice.readInExcel("price_detail.csv");
-            //_sellingPrice.getObject("27773-02", "sv", "SEK");
-            
+        {            
         }
 
         public IActionResult OnPost(string action, 
             string SKUDropDown, string marketIdDropDown, string currencyDropDown,
             string SKUText, string marketIdText, string currencyText)
         {
-            if (action == "doSomething")
+            if (action == "GetProductPriceHistory")
             {
                 string SKU = SKUText != null ? SKUText : SKUDropDown;
                 string marketId = marketIdText != null ? marketIdText : marketIdDropDown;

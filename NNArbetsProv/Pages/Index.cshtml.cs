@@ -51,6 +51,19 @@ namespace NNArbetsProv.Pages
                 string currency = currencyText != null ? currencyText : currencyDropDown;
                 tableOutput = _sellingPrice.getObject(SKU, marketId, currency);
             }
+            else if(action == "Test")
+            {
+                foreach(string s in searchOptions.SKU)
+                {
+                    foreach (string m in searchOptions.marketId)
+                    {
+                        foreach (string c in searchOptions.currency)
+                        {
+                            tableOutput = _sellingPrice.getObject(s, m, c);
+                        }
+                    }
+                }
+            }
             return Page();
         }
 

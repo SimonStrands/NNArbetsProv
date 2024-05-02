@@ -160,6 +160,16 @@ namespace NNArbetsProv.Pages
                 //if true add it
                 if(priceDetailListCpy[nextIndexPrice].UnitPrice < Table.Last().UnitPrice)
                 {
+
+                    //Check EdgeCase
+                    if( nextIndexPrice < priceDetailListCpy.Count - 1 &&
+                        priceDetailListCpy[nextIndexPrice].ValidFrom == priceDetailListCpy[(nextIndexPrice + 1)].ValidFrom &&
+                        priceDetailListCpy[nextIndexPrice].UnitPrice > priceDetailListCpy[(nextIndexPrice + 1)].UnitPrice
+                        )
+                    {
+                        nextIndexPrice++;
+                    }
+
                     currentTime = priceDetailListCpy[nextIndexPrice].ValidFrom;
                     Table.Last().End = currentTime;
 

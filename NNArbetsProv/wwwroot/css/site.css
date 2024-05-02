@@ -20,3 +20,19 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+table {
+    margin: auto;
+    margin-top: 20px;
+    padding:10px 5px 10px 5px;
+    border-collapse: separate;
+    border: solid black 1px;
+    border-radius: 6px;
+}
+
+tr:nth-child(odd) {
+    background-color: #D3D3D3;
+}
+tr:nth-child(even) {
+    background-color: #A9A9A9;
+}

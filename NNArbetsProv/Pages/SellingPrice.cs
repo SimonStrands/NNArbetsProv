@@ -41,8 +41,9 @@ namespace NNArbetsProv.Pages
             Product = new Dictionary<string, List<PriceDetails>>();
             _logger = logger;
         }
-        public void readInExcel(string fileName)
+        public SearchOptions readInExcel(string fileName)
         {
+            SearchOptions theReturn = new SearchOptions();
             CsvConfiguration csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 Delimiter = "\t",
@@ -59,7 +60,7 @@ namespace NNArbetsProv.Pages
             catch (Exception ex)
             {
                 _logger.LogInformation(ex.Message);
-                return;
+                return theReturn;
             }
 
             csv.Context.RegisterClassMap<PriceDetailsMap>();
@@ -76,15 +77,22 @@ namespace NNArbetsProv.Pages
                 if(!Product.ContainsKey(record.CatalogEntryCode))
                 {
                     Product.Add(record.CatalogEntryCode, new List<PriceDetails>());
+
+                    theReturn.SKU.Add(record.CatalogEntryCode);
                 }
+                theReturn.marketId.Add(record.MarketId);
+                theReturn.currency.Add(record.CurrencyCode);
                 Product[record.CatalogEntryCode].Add(record);
             }
             _logger.LogInformation("Done");
+
+            return theReturn;
         }
         public List<PriceDetailOutput> getObject(string SKU, string MarketId, string CurrencyCode)
         {
             List<PriceDetails> priceDetailListref = null;
-            if(!Product.TryGetValue(SKU, out priceDetailListref))
+            
+            if(SKU == null || !Product.TryGetValue(SKU, out priceDetailListref))
             {
                 //return empty if it didn't exist
                 return new List<PriceDetailOutput>();
@@ -116,26 +124,61 @@ namespace NNArbetsProv.Pages
             Table.Add(new PriceDetailOutput(priceDetailListCpy[currentIndexPrice], priceDetailListCpy[currentIndexPrice].ValidFrom));
 
             //TODO : FIX THIS!!! NOT RIGHT I THINK
-            while (priceDetailListCpy.Count > 1)
+            while (nextIndexPrice < priceDetailListCpy.Count)
             {
-                 //check if nextIndexPrice.validfrom is > validuntil
-                    //if true go back and add
-                    //continue
+                //check if nextIndexPrice.validfrom is > validuntil
+                //if true go back and add
+                //continue
                 //else : 
+                if(priceDetailListCpy[nextIndexPrice].ValidFrom > validUntil)
+                {
+                    currentTime = validUntil;
+                    //EW but hack
+                    while (priceDetailListCpy[nextIndexPrice].ValidFrom > validUntil)
+                    {
+                        currentIndexPrice--;
+                        validUntil = FromStringToDateTime(priceDetailListCpy[currentIndexPrice].ValidUntil);
+                    }
+                    
+                    Table.Last().End = currentTime;
+                    Table.Add(new PriceDetailOutput(priceDetailListCpy[currentIndexPrice], currentTime));
+                }
 
                 //Check if nextIndexPrice.price is < currentIndexPrice
                     //if true add it
+                if(priceDetailListCpy[nextIndexPrice].UnitPrice < Table.Last().UnitPrice)
+                {
+                    currentTime = priceDetailListCpy[nextIndexPrice].ValidFrom;
+                    Table.Last().End = currentTime;
 
+                    validUntil = FromStringToDateTime(priceDetailListCpy[nextIndexPrice].ValidUntil);
+                    Table.Add(new PriceDetailOutput(priceDetailListCpy[nextIndexPrice], currentTime));
+                    currentIndexPrice = nextIndexPrice;
+                }
 
 
                 nextIndexPrice++;
             }
+            //do the last things
+            Table.Last().End = FromStringToDateTime(priceDetailListCpy[currentIndexPrice].ValidUntil);
+
+            Nullable<DateTime> biggest = Table.Last().End;
+
+            for(int i = priceDetailListCpy.Count - 1; i >= 0; i--)
+            {
+                if (lessThanTime(biggest, FromStringToDateTime(priceDetailListCpy[i].ValidUntil)))
+                {
+                    currentIndexPrice = i;
+                    biggest = FromStringToDateTime(priceDetailListCpy[i].ValidUntil);
+                }
+            }
+            if(biggest != Table.Last().End) 
+            {
+                Table.Add(new PriceDetailOutput(priceDetailListCpy[currentIndexPrice], Table.Last().End));
+                Table.Last().End = biggest;
+            }
 
             return Table;
-        }
-        public void getWithSKU(string SKU, string fileName)
-        {
-
         }
     }
 }

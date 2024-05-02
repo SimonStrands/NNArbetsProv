@@ -7,8 +7,64 @@
     <h1>@Model.WelcomeMessage</h1>
     
     <form method="post">
+        <select name="SKUDropDown">
+            @foreach (var option in Model.searchOptions.SKU)
+            {
+                <option value="@option">@option</option>
+            }
+        </select>
+        <select name="marketIdDropDown">
+            @foreach (var option in Model.searchOptions.marketId)
+            {
+                <option value="@option">@option</option>
+            }
+        </select>
+        <select name="currencyDropDown">
+            @foreach (var option in Model.searchOptions.currency)
+            {
+                <option value="@option">@option</option>
+            }
+        </select>
+        <br />
+
+        <input type="text" name="SKUText" placeholder="SKU" />
+        <input type="text" name="marketIdText" placeholder="MarketId" />
+        <input type="text" name="currencyText" placeholder="Currency" />
+        
+
         <button type="submit" name="action" value="doSomething">Do Something</button>
     </form>
+
+    @if (Model.tableOutput != null && Model.tableOutput.Any())
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>MarketID</th>
+                    <th>UnitPrice</th>
+                    <th>CurrencyCode</th>
+                    <th>Start</th>
+                    <th>End</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.tableOutput)
+                {
+                    <tr>
+                        <td>@item.MarketId</td>
+                        <td>@item.UnitPrice</td>
+                        <td>@item.CurrencyCode</td>
+                        <td>@item.Start</td>
+                        <td>@item.End</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>Click for table</p>
+    }
 
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>

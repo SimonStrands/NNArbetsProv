@@ -161,13 +161,22 @@ namespace NNArbetsProv.Pages
                 if(priceDetailListCpy[nextIndexPrice].UnitPrice < Table.Last().UnitPrice)
                 {
 
-                    //Check EdgeCase
-                    if( nextIndexPrice < priceDetailListCpy.Count - 1 &&
-                        priceDetailListCpy[nextIndexPrice].ValidFrom == priceDetailListCpy[(nextIndexPrice + 1)].ValidFrom &&
-                        priceDetailListCpy[nextIndexPrice].UnitPrice > priceDetailListCpy[(nextIndexPrice + 1)].UnitPrice
-                        )
+                    //Check EdgeCase, if Validfrom exist before 
+                    //also bigger check if this is done more than twice (it doesn't happen though in this test)
                     {
-                        nextIndexPrice++;
+                        decimal tempCurrentPrice = priceDetailListCpy[nextIndexPrice].UnitPrice;
+                        int nextIndexPriceTemp = nextIndexPrice;
+
+                        while (nextIndexPriceTemp < priceDetailListCpy.Count - 1 &&
+                            priceDetailListCpy[nextIndexPriceTemp].ValidFrom == priceDetailListCpy[(nextIndexPriceTemp + 1)].ValidFrom)
+                        {
+                            if (tempCurrentPrice > priceDetailListCpy[(nextIndexPriceTemp + 1)].UnitPrice)
+                            {
+                                tempCurrentPrice = priceDetailListCpy[(nextIndexPriceTemp + 1)].UnitPrice;
+                                nextIndexPrice = nextIndexPriceTemp;
+                            }
+                            nextIndexPriceTemp++;
+                        }
                     }
 
                     currentTime = priceDetailListCpy[nextIndexPrice].ValidFrom;

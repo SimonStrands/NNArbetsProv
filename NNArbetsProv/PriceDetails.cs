@@ -24,9 +24,44 @@ namespace NNArbetsProv
         [Index(6)]
         public DateTime ValidFrom       { get; set; }
         [Index(7)]
-        public string ValidUntil      { get; set; }
+        public string ValidUntil        { get; set; }
         [Index(8)]
         public decimal UnitPrice        { get; set; }
+    }
+
+    public class PriceDetailOutput
+    {
+        
+        public string MarketId      { get; set; }
+        public decimal UnitPrice    { get; set; }
+        public string CurrencyCode  { get; set; }
+        public Nullable<DateTime> Start       { get; set; }
+        public Nullable<DateTime> End         { get; set; }
+
+        //public PriceDetailOutput(PriceDetails OriginalPriceDetail, Nullable<DateTime> start, Nullable<DateTime> end)
+        //{
+        //    this.MarketId = OriginalPriceDetail.MarketId;
+        //    this.UnitPrice = OriginalPriceDetail.UnitPrice;
+        //    this.CurrencyCode = OriginalPriceDetail.CurrencyCode;
+        //    this.Start = start;
+        //    this.End = end;
+        //}
+        public PriceDetailOutput(PriceDetails OriginalPriceDetail, Nullable<DateTime> start)
+        {
+            this.MarketId = OriginalPriceDetail.MarketId;
+            this.UnitPrice = OriginalPriceDetail.UnitPrice;
+            this.CurrencyCode = OriginalPriceDetail.CurrencyCode;
+            this.Start = start;
+            this.End = null;
+        }
+        public PriceDetailOutput(PriceDetails OriginalPriceDetail)
+        {
+            this.MarketId = OriginalPriceDetail.MarketId;
+            this.UnitPrice = OriginalPriceDetail.UnitPrice;
+            this.CurrencyCode = OriginalPriceDetail.CurrencyCode;
+            this.Start = null;
+            this.End = null;
+        }
     }
 
     /// <summary>

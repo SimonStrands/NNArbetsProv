@@ -71,8 +71,7 @@ namespace NNArbetsProv.Pages
             List<List<PriceDetails>> Table = new List<List<PriceDetails>>();
             //Do logic here
 
-            //Remove unwanted but don't do it by reference!!!!
-            //TODO : what's above
+            //Remove unwanted in copies, but doesn't do it by reference
             for(int i = 0; i < priceDetailListCpy.Count; i++)
             {
                 if (priceDetailListCpy[i].MarketId != MarketId || priceDetailListCpy[i].CurrencyCode != CurrencyCode)
@@ -81,6 +80,8 @@ namespace NNArbetsProv.Pages
                     i--;
                 }
             }
+
+
 
             return Table;
         }

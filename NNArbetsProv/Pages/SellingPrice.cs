@@ -11,15 +11,12 @@ namespace NNArbetsProv.Pages
     {
         private ILogger<IndexModel> _logger;
         private Dictionary<string, List<PriceDetails>> Product;
+        //private Dictionary<string, Dictionary<string, List<PriceDetails>>> Product;
 
         public void giveLogger(ILogger<IndexModel> logger)
         {
+            Product = new Dictionary<string, List<PriceDetails>>();
             _logger = logger;
-        }
-        private PriceDetails fromRowToPriceDetail(string record)
-        {
-            _logger.LogInformation(record);
-            return new PriceDetails();
         }
         public void readInExcel(string fileName)
         {
@@ -61,7 +58,7 @@ namespace NNArbetsProv.Pages
             }
             _logger.LogInformation("Done");
         }
-        public List<List<PriceDetails>> getWithSKU(string SKU)
+        public List<List<PriceDetails>> getObject(string SKU, string MarketId, string CurrencyCode)
         {
             List<PriceDetails> priceDetailList = null;
             if(!Product.TryGetValue(SKU, out priceDetailList))
@@ -71,8 +68,26 @@ namespace NNArbetsProv.Pages
             }
 
             List<List<PriceDetails>> Table = new List<List<PriceDetails>>();
-
             //Do logic here
+
+            //Remove unwanted but don't do it by reference!!!!
+            //TODO : what's above
+            for(int i = 0; i < priceDetailList.Count; i++)
+            {
+                if (priceDetailList[i].MarketId != MarketId || priceDetailList[i].CurrencyCode != CurrencyCode)
+                {
+                    priceDetailList.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            List<PriceDetails> priceDetailListTest = null;
+            if (!Product.TryGetValue(SKU, out priceDetailListTest))
+            {
+                //return empty if it didn't exist
+                return new List<List<PriceDetails>>();
+            }
+            int x = priceDetailListTest.Count;
 
             return Table;
         }

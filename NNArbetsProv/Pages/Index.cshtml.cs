@@ -23,6 +23,7 @@ namespace NNArbetsProv.Pages
         {
 
             _sellingPrice.readInExcel("price_detail.csv");
+            _sellingPrice.getObject("27773-02", "sv", "SEK");
             
         }
 
@@ -39,7 +40,7 @@ namespace NNArbetsProv.Pages
         {
         
             
-            _logger.LogInformation(_sellingPrice.test());
+            //_logger.LogInformation(_sellingPrice.test());
         }
     }
 }

@@ -60,34 +60,27 @@ namespace NNArbetsProv.Pages
         }
         public List<List<PriceDetails>> getObject(string SKU, string MarketId, string CurrencyCode)
         {
-            List<PriceDetails> priceDetailList = null;
-            if(!Product.TryGetValue(SKU, out priceDetailList))
+            List<PriceDetails> priceDetailListref = null;
+            if(!Product.TryGetValue(SKU, out priceDetailListref))
             {
                 //return empty if it didn't exist
                 return new List<List<PriceDetails>>();
             }
+            List<PriceDetails> priceDetailListCpy = new List<PriceDetails>(priceDetailListref);
 
             List<List<PriceDetails>> Table = new List<List<PriceDetails>>();
             //Do logic here
 
             //Remove unwanted but don't do it by reference!!!!
             //TODO : what's above
-            for(int i = 0; i < priceDetailList.Count; i++)
+            for(int i = 0; i < priceDetailListCpy.Count; i++)
             {
-                if (priceDetailList[i].MarketId != MarketId || priceDetailList[i].CurrencyCode != CurrencyCode)
+                if (priceDetailListCpy[i].MarketId != MarketId || priceDetailListCpy[i].CurrencyCode != CurrencyCode)
                 {
-                    priceDetailList.RemoveAt(i);
+                    priceDetailListCpy.RemoveAt(i);
                     i--;
                 }
             }
-
-            List<PriceDetails> priceDetailListTest = null;
-            if (!Product.TryGetValue(SKU, out priceDetailListTest))
-            {
-                //return empty if it didn't exist
-                return new List<List<PriceDetails>>();
-            }
-            int x = priceDetailListTest.Count;
 
             return Table;
         }
